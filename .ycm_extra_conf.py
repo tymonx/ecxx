@@ -45,7 +45,7 @@ flags = [
 '-Wno-exit-time-destructors',
 '-Wno-covered-switch-default',
 '-fexceptions',
-'-std=c++11',
+'-std=c++17',
 '-xc++',
 '-Iinclude',
 ]

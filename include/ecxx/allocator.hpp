@@ -47,25 +47,26 @@ public:
     virtual ~Allocator() noexcept;
 };
 
+inline
 Allocator::~Allocator() noexcept = default;
 
-template<typename T>
-auto Allocator::allocate(std::size_t n) noexcept -> T* {
+template<typename T> inline auto
+Allocator::allocate(std::size_t n) noexcept -> T* {
     return static_cast<T*>(allocate(n * sizeof(T)));
 }
 
-template<>
-auto Allocator::allocate(std::size_t n) noexcept -> void* {
+template<> inline auto
+Allocator::allocate(std::size_t n) noexcept -> void* {
     return allocate(n);
 }
 
-template<typename T>
-auto Allocator::reallocate(void*  ptr, std::size_t n) noexcept -> T* {
+template<typename T> inline auto
+Allocator::reallocate(void*  ptr, std::size_t n) noexcept -> T* {
     return static_cast<T*>(reallocate(ptr, n * sizeof(T)));
 }
 
-template<>
-auto Allocator::reallocate(void*  ptr, std::size_t n) noexcept -> void* {
+template<> inline auto
+Allocator::reallocate(void*  ptr, std::size_t n) noexcept -> void* {
     return reallocate(ptr, n);
 }
 

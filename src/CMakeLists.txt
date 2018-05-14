@@ -12,22 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.1)
-project(ecxx C CXX)
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_LIST_DIR}/cmake")
-
-option(TESTS "Enable/disable tests" ON)
-
-include(EcxxCompiler)
-
-set(ECXX_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-add_subdirectory(src)
-
-find_package(GTest)
-
-if (TESTS AND GTEST_FOUND)
-    enable_testing()
-    add_subdirectory(tests)
-endif()
+add_subdirectory(ecxx)

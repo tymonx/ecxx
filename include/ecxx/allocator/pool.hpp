@@ -13,25 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef ECXX_ALLOCATOR_STANDARD_HPP
-#define ECXX_ALLOCATOR_STANDARD_HPP
+#ifndef ECXX_ALLOCATOR_POOL_HPP
+#define ECXX_ALLOCATOR_POOL_HPP
 
+#include "ecxx/span.hpp"
 #include "ecxx/allocator.hpp"
 
 namespace ecxx {
 namespace allocator {
 
-class Standard final : public Allocator {
+class Pool final : public Allocator {
 public:
-    Standard() noexcept = default;
+    constexpr Pool() noexcept = default;
 
-    Standard(Standard&& other) noexcept = default;
+    Pool(void* memory, std::size_t size) noexcept;
 
-    Standard(const Standard& other) noexcept = default;
+    template<typename T>
+    constexpr Pool(const Span<T>& memory) noexcept;
 
-    Standard& operator=(Standard&& other) noexcept = default;
+    Pool(Pool&& other) noexcept;
 
-    Standard& operator=(const Standard& other) noexcept = default;
+    Pool(const Pool& other) noexcept = delete;
+
+    Pool& operator=(Pool&& other) noexcept;
+
+    Pool& operator=(const Pool& other) noexcept = delete;
 
     auto allocate(std::size_t n) noexcept -> void* override;
 
@@ -39,13 +45,22 @@ public:
 
     void deallocate(void* ptr) noexcept override;
 
-    ~Standard() noexcept override;
+    ~Pool() noexcept override;
+private:
+    void* m_header{nullptr};
+    void* m_memory{nullptr};
+    std::size_t m_size{0u};
 };
 
 inline
-Standard::~Standard() noexcept = default;
+Pool::~Pool() noexcept = default;
+
+template<typename T> inline constexpr
+Pool::Pool(const Span<T>& memory) noexcept :
+    Pool{memory.data(), memory.size_bytes()}
+{ }
 
 } /* namespace allocator */
 } /* namespace ecxx */
 
-#endif /* ECXX_ALLOCATOR_STANDARD_HPP */
+#endif /* ECXX_ALLOCATOR_POOL_HPP */

@@ -24,9 +24,9 @@ function(ecxx_target_compile_options target)
     set(options "")
 
     if (CMAKE_SYSTEM_NAME MATCHES CYGWIN)
-        list(APPEND options -std=gnu++11)
+        list(APPEND options -std=gnu++17)
     else()
-        list(APPEND options -std=c++11)
+        list(APPEND options -std=c++17)
     endif()
 
     if (NOT CMAKE_SYSTEM_NAME MATCHES CYGWIN)
