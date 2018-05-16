@@ -15,46 +15,89 @@
 
 #include "ecxx/allocator/pool.hpp"
 
+#include <cstddef>
 #include <algorithm>
 
 using ecxx::allocator::Pool;
 
 struct Header {
-    void* prev;
-    void* next;
+    Header* next;
     std::size_t size;
 };
 
 static constexpr std::uintptr_t HEADER_ALIGN =
     std::max(alignof(Header), alignof(std::max_align_t));
 
-static constexpr std::uintptr_t HEADER_SIZE = sizeof(Header);
 static constexpr std::uintptr_t HEADER_OFFSET = HEADER_ALIGN - 1u;
 static constexpr std::uintptr_t HEADER_MASK = ~HEADER_ALIGN;
 
-static inline Header* header_cast(void* header) noexcept {
-    return static_cast<Header*>(header);
-}
-
-static inline std::uintptr_t align(std::uintptr_t ptr) noexcept {
-    return (ptr + HEADER_SIZE + HEADER_OFFSET) & HEADER_MASK;
-}
-
-Pool::Pool(void* memory, std::size_t size) noexcept :
-    m_memory{memory},
-    m_size{size}
-{
-     
+static constexpr inline
+auto align(std::uintptr_t address) noexcept -> std::uintptr_t {
+    return (address + sizeof(Header) + HEADER_OFFSET) & HEADER_MASK;
 }
 
 auto Pool::allocate(std::size_t n) noexcept -> void* {
     void* ptr = nullptr;
 
+    if (n != 0) {
+        auto header = static_cast<Header*>(m_header_first);
+        auto address_end = m_memory_end;
+        auto address = m_memory_begin;
+
+        do {
+            address = align(address);
+
+            if ((address + n) <= address_end) {
+                ptr = reinterpret_cast<void*>(address);
+
+                auto hdr = reinterpret_cast<Header*>(
+                        address - sizeof(Header));
+
+                hdr->size = n;
+
+                if (header != nullptr) {
+                    hdr->next = header->next;
+                    header->next = hdr;
+                }
+
+                if (m_header_first == header) {
+                    m_header_first = hdr;
+                }
+                else {
+                    reinterpret_cast<Header*>(address_end)->next = hdr;
+                }
+            }
+            else if (header != nullptr) {
+                auto address = align((header != nullptr) ? (std::uintptr_t(header) +
+                        sizeof(Header) + header->size) : m_memory_begin);
+
+
+
+                address_end = std::uintptr_t(header);
+                header = header->prev;
+            }
+        } while ((ptr == nullptr) && (header != nullptr));
+    }
+
     return ptr;
 }
 
-auto Pool::reallocate(void* ptr, std::size_t n) noexcept -> void* {
-    return ((n != 0) || (ptr != nullptr)) ? std::realloc(ptr, n) : nullptr;
+auto Pool::reallocate(void* src, std::size_t n) noexcept -> void* {
+    void* ptr = nullptr;
+
+    if (n != 0) {
+        if (ptr != nullptr) {
+
+        }
+        else {
+            ptr = allocate(n);
+        }
+    }
+    else {
+        deallocate(ptr);
+    }
+
+    return ptr;
 }
 
 void Pool::deallocate(void* ptr) noexcept {

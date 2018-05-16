@@ -19,17 +19,19 @@
 #include "ecxx/span.hpp"
 #include "ecxx/allocator.hpp"
 
+#include <cstdint>
+
 namespace ecxx {
 namespace allocator {
 
 class Pool final : public Allocator {
 public:
-    constexpr Pool() noexcept = default;
+    Pool() noexcept = default;
 
     Pool(void* memory, std::size_t size) noexcept;
 
     template<typename T>
-    constexpr Pool(const Span<T>& memory) noexcept;
+    Pool(const Span<T>& memory) noexcept;
 
     Pool(Pool&& other) noexcept;
 
@@ -47,15 +49,22 @@ public:
 
     ~Pool() noexcept override;
 private:
-    void* m_header{nullptr};
-    void* m_memory{nullptr};
-    std::size_t m_size{0u};
+    std::uintptr_t m_memory_begin{0u};
+    std::uintptr_t m_memory_end{0u};
+    void* m_header_first{nullptr};
+    void* m_header_last{nullptr};
 };
 
 inline
 Pool::~Pool() noexcept = default;
 
-template<typename T> inline constexpr
+inline
+Pool::Pool(void* memory, std::size_t size) noexcept :
+    m_memory_begin{std::uintptr_t(memory)},
+    m_memory_end{std::uintptr_t(memory) + size}
+{ }
+
+template<typename T> inline
 Pool::Pool(const Span<T>& memory) noexcept :
     Pool{memory.data(), memory.size_bytes()}
 { }
